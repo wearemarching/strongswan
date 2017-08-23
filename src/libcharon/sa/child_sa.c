@@ -754,6 +754,7 @@ static status_t install_internal(private_child_sa_t *this, chunk_t encr,
 	uint32_t tfc = 0;
 	host_t *src, *dst;
 	status_t status;
+	mark_t mark = (mark_t){};
 	bool update = FALSE;
 
 	/* BEET requires the bound address from the traffic selectors */
@@ -777,6 +778,10 @@ static status_t install_internal(private_child_sa_t *this, chunk_t encr,
 		this->my_cpi = cpi;
 		dst_ts = my_ts;
 		src_ts = other_ts;
+		if (this->config->has_option(this->config, OPT_MARK_IN_SA))
+		{
+			mark = this->mark_in;
+		}
 	}
 	else
 	{
@@ -786,6 +791,7 @@ static status_t install_internal(private_child_sa_t *this, chunk_t encr,
 		this->other_cpi = cpi;
 		src_ts = my_ts;
 		dst_ts = other_ts;
+		mark = this->mark_out;
 
 		if (tfcv3)
 		{
@@ -857,7 +863,7 @@ static status_t install_internal(private_child_sa_t *this, chunk_t encr,
 		.dst = dst,
 		.spi = spi,
 		.proto = proto_ike2ip(this->protocol),
-		.mark = inbound ? (mark_t){} : this->mark_out,
+		.mark = mark,
 	};
 	sa = (kernel_ipsec_add_sa_t){
 		.reqid = this->reqid,
